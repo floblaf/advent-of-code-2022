@@ -1,7 +1,7 @@
 fun main() {
     data class Chore(val firstStart: Int, val firstEnd: Int, val secondStart: Int, val secondEnd: Int) {
-        val firstRange = firstStart.toInt()..firstEnd.toInt()
-        val secondRange = secondStart.toInt()..secondEnd.toInt()
+        val firstRange = firstStart..firstEnd
+        val secondRange = secondStart..secondEnd
     }
 
     fun part1(input: List<Chore>): Int {
@@ -23,7 +23,6 @@ fun main() {
         val (firstStart, firstEnd, secondStart, secondEnd) = match.destructured
         Chore(firstStart.toInt(), firstEnd.toInt(), secondStart.toInt(), secondEnd.toInt())
     }
-
 
     println(part1(input))
     println(part2(input))

@@ -1,4 +1,6 @@
 fun main() {
+    data class Operation(val count: Int, val from: Int, val to: Int)
+
     val input = readInput("Day05")
 
     val blankLine = input.indexOfFirst { it.isEmpty() }
@@ -54,5 +56,3 @@ fun main() {
     println(part1(cargo, operations))
     println(part2(cargo, operations))
 }
-
-data class Operation(val count: Int, val from: Int, val to: Int)

@@ -1,4 +1,6 @@
 fun main() {
+    data class Elf(val calories: Int)
+
     fun part1(elves: List<Elf>): Int {
         return elves.maxBy { it.calories }.calories
     }
@@ -27,4 +29,3 @@ fun main() {
     println(part1(elves))
     println(part2(elves))
 }
-data class Elf(val calories: Int)
