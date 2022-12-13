@@ -1,66 +1,45 @@
 fun main() {
 
-    fun compare(left: Any, right: Any): Int {
-        return if (left is Int && right is Int) {
-            return left.compareTo(right)
-        } else if (left is List<*> && right is List<*>) {
-            left
-                .zip(right) { l, r -> compare(l!!, r!!) }
-                .firstOrNull { it != 0 } ?: left.size.compareTo(right.size)
-        } else if (left is List<*>) {
-            compare(left, listOf(right))
-        } else if (right is List<*>) {
-            compare(listOf(left), right)
-        } else {
-            throw IllegalStateException()
-        }
-    }
-    data class Packet(
-        val content: Any
-    ): Comparable<Packet> {
-        override fun compareTo(other: Packet): Int {
-            return compare(this.content, other.content)
-        }
-    }
-
-    fun parse(input: String): Any {
+    fun parse(input: String): Packet.Data {
         if (input.all { it in '0'..'9' }) {
-            return input.toInt()
+            return Packet.Data.Single(input.toInt())
         }
 
         if (input == "[]") {
-            return emptyList<Any>()
+            return Packet.Data.Collection()
         }
 
         if (input.startsWith("[")) {
             var depth = 0
             var current = ""
-            return buildList {
-                input.removePrefix("[").forEach { char ->
-                    when {
-                        char == ',' && depth == 0 -> {
-                            add(parse(current))
-                            current = ""
-                        }
-
-                        char == '[' -> {
-                            depth++
-                            current += char
-                        }
-
-                        char == ']' -> {
-                            depth--
-                            if (depth == -1) {
+            return Packet.Data.Collection(
+                *buildList {
+                    input.removePrefix("[").forEach { char ->
+                        when {
+                            char == ',' && depth == 0 -> {
                                 add(parse(current))
-                            } else {
+                                current = ""
+                            }
+
+                            char == '[' -> {
+                                depth++
                                 current += char
                             }
-                        }
 
-                        else -> current += char
+                            char == ']' -> {
+                                depth--
+                                if (depth == -1) {
+                                    add(parse(current))
+                                } else {
+                                    current += char
+                                }
+                            }
+
+                            else -> current += char
+                        }
                     }
-                }
-            }
+                }.toTypedArray()
+            )
         }
         throw IllegalStateException()
     }
@@ -87,8 +66,6 @@ fun main() {
         return (sorted.indexOf(dividerA) + 1) * (sorted.indexOf(dividerB) + 1)
     }
 
-
-
     val input = readInput("Day13")
         .filter { it.isNotBlank() }
         .map {
@@ -99,4 +76,41 @@ fun main() {
 
     println(part1(input))
     println(part2(input))
+}
+
+data class Packet(
+    val data: Data
+) : Comparable<Packet> {
+    override fun compareTo(other: Packet): Int {
+        return data.compareTo(other.data)
+    }
+
+    sealed class Data : Comparable<Data> {
+
+        class Collection(
+            vararg val items: Data
+        ) : Data() {
+            override fun compareTo(other: Data): Int {
+                return when (other) {
+                    is Single -> this.compareTo(Collection(other))
+                    is Collection -> {
+                        this.items
+                            .zip(other.items) { l, r -> l.compareTo(r) }
+                            .firstOrNull { it != 0 } ?: items.size.compareTo(other.items.size)
+                    }
+                }
+            }
+        }
+
+        class Single(
+            val value: Int
+        ) : Data() {
+            override fun compareTo(other: Data): Int {
+                return when (other) {
+                    is Single -> value.compareTo(other.value)
+                    is Collection -> Collection(this).compareTo(other)
+                }
+            }
+        }
+    }
 }
